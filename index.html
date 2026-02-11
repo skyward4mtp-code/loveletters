@@ -1,0 +1,1539 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skyward • Love Letters</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+:root{
+  --bg0:#050A14;
+  --bg1:#071A2A;
+  --text:#EAF2FF;
+  --glass: rgba(255,255,255,0.10);
+  --border: rgba(255,255,255,0.18);
+}
+
+html,body{height:100%}
+body{
+  margin:0;
+  color:var(--text);
+  background: linear-gradient(180deg, var(--bg0), var(--bg1));
+  overflow-x:hidden;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+
+/* ===== Hero background (video/slideshow) ===== */
+.hero{
+  position:relative;
+  min-height: 92vh;
+  display:grid;
+  place-items:center;
+  padding: 90px 18px 36px;
+  overflow:hidden;
+}
+.bgVideo, .bgSlide{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  transform: scale(1.03);
+  filter: contrast(1.02) saturate(1.05);
+}
+.bgSlide{ opacity:0; transition: opacity 900ms ease; }
+.bgSlide.active{ opacity:1; }
+
+.heroOverlay{
+  position:absolute; inset:0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.42), rgba(0,0,0,.35) 40%, rgba(0,0,0,.55)),
+    radial-gradient(1000px 600px at 60% 20%, rgba(59,130,246,.18), transparent 60%),
+    radial-gradient(900px 520px at 20% 30%, rgba(167,139,250,.14), transparent 60%);
+}
+.heroOverlay::after{
+  content:"";
+  position:absolute; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity:.7;
+  pointer-events:none;
+}
+.heroInner{ position:relative; z-index:2; text-align:center; max-width: 980px; }
+
+/* top nav */
+.navBar{
+  position:fixed; top:0; left:0; right:0;
+  z-index:50; padding: 14px 18px;
+  transition: background .25s ease, border-color .25s ease;
+}
+.navBar.scrolled{
+  background: rgba(7, 20, 36, .55);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.navWrap{
+  max-width: 1100px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+.navLinks{
+  display:flex;
+  gap:18px;
+  font-size: 12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color: rgba(255,255,255,.8);
+}
+.navLinks a{ opacity:.85; }
+.navLinks a:hover{ opacity:1; text-decoration: underline; text-underline-offset: 6px; }
+.navRight{ display:flex; align-items:center; gap:10px; position:relative; }
+
+.pillBtn{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  height:42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.14);
+}
+.pillBtn:hover{ background: rgba(255,255,255,.16); }
+
+.iconBtn{
+  position:relative;
+  width:42px; height:42px;
+  border-radius: 999px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.14);
+}
+.iconBtn:hover{ background: rgba(255,255,255,.16); }
+
+.badge{
+  position:absolute;
+  top:6px; right:6px;
+  min-width:18px; height:18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255,70,120,.95);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  display:grid;
+  place-items:center;
+  box-shadow: 0 10px 25px rgba(255,70,120,.25);
+}
+
+/* panels */
+.panel{
+  position:absolute;
+  top: 52px;
+  right: 0;
+  width: min(380px, calc(100vw - 24px));
+  background: rgba(10, 20, 34, .62);
+  border: 1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(16px);
+  border-radius: 18px;
+  box-shadow: 0 20px 70px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.panelHeader{
+  padding: 12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.panelList{
+  max-height: 380px;
+  overflow:auto;
+}
+.panelItem{
+  padding: 12px 14px;
+  display:flex;
+  gap:10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  cursor:pointer;
+}
+.panelItem:hover{ background: rgba(255,255,255,.06); }
+.notiDot{
+  width:10px; height:10px; border-radius:999px;
+  background: rgba(255,215,120,.95);
+  box-shadow: 0 0 14px rgba(255,215,120,.35);
+  margin-top: 4px;
+}
+.muted{ opacity:.72; }
+
+/* center title */
+.bigTitle{
+  font-size: clamp(34px, 6vw, 62px);
+  font-weight: 800;
+  letter-spacing:.06em;
+  text-transform: uppercase;
+  text-shadow: 0 22px 70px rgba(0,0,0,.45);
+}
+.subTitle{
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  opacity:.78;
+}
+
+.socialRow{
+  margin-top: 18px;
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  opacity:.9;
+}
+.socialIcon{
+  width:32px; height:32px;
+  border-radius: 999px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.16);
+  transition: transform .18s ease, background .18s ease;
+}
+.socialIcon:hover{ transform: translateY(-1px); background: rgba(255,255,255,.16); }
+
+.ctaRow{
+  margin-top: 26px;
+  display:flex;
+  justify-content:center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.cta{
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing:.02em;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.10);
+  transition: transform .18s ease, background .18s ease;
+}
+.cta:hover{ transform: translateY(-1px); background: rgba(255,255,255,.16); }
+.cta.primary{
+  background: rgba(255,255,255,.92);
+  color:#0b1220;
+  border-color: rgba(255,255,255,.75);
+}
+.cta.primary:hover{ background: rgba(255,255,255,.98); }
+
+/* sections */
+.section{ display:none; }
+.section.active{ display:block; animation: sectionIn .28s ease; }
+@keyframes sectionIn{
+  from{ opacity:0; transform: translateY(10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+.glass{
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+}
+.cardHover{ transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.cardHover:hover{
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.25);
+  box-shadow: 0 22px 70px rgba(0,0,0,.42);
+}
+
+/* Toast */
+#toastWrap{
+  position:fixed; inset:auto 16px 16px 16px;
+  z-index:80; display:grid; gap:10px; pointer-events:none;
+}
+.toast{
+  pointer-events:none; max-width: 620px; margin-left:auto;
+  background: rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.18);
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+  padding: 12px 14px 10px 14px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+  animation: toastIn .26s ease forwards;
+  overflow:hidden;
+}
+@keyframes toastIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+.toastOut{ animation: toastOut .26s ease forwards; }
+@keyframes toastOut{ from{opacity:1; transform:translateY(0)} to{opacity:0; transform:translateY(10px)} }
+.toastBar{ height:2px; margin-top:10px; background: rgba(255,255,255,.10); border-radius:999px; overflow:hidden; }
+.toastBar > i{
+  display:block; height:100%; width:100%; transform-origin:left;
+  background: linear-gradient(90deg, rgba(59,130,246,.9), rgba(255,215,120,.85), rgba(167,139,250,.85));
+  animation: toastProg var(--t, 2200ms) linear forwards;
+}
+@keyframes toastProg{ from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+/* Effects */
+.meteor{
+  position:fixed; width:160px; height:2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.9), rgba(255,255,255,0));
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.35));
+  opacity:.85;
+  transform: rotate(-25deg);
+  animation: fly 900ms ease-out forwards;
+  pointer-events:none;
+  z-index:10;
+}
+@keyframes fly{
+  from{ transform: translate3d(0,0,0) rotate(-25deg); opacity:0; }
+  15%{ opacity:.95; }
+  to{ transform: translate3d(560px, 280px, 0) rotate(-25deg); opacity:0; }
+}
+.sparkBurst{
+  position:fixed; width:10px; height:10px; border-radius:999px;
+  background: rgba(255,255,255,.92);
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.55));
+  pointer-events:none;
+  animation: burst 720ms ease-out forwards;
+  z-index:60;
+}
+.sparkBurst.star{
+  width:12px; height:12px;
+  background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,215,120,.92) 55%, rgba(255,215,120,0) 75%);
+  filter: drop-shadow(0 0 14px rgba(255,215,120,.45));
+}
+@keyframes burst{
+  from{ transform:translate3d(0,0,0) scale(1); opacity:1; }
+  to{ transform:translate3d(var(--dx), var(--dy), 0) scale(.2); opacity:0; }
+}
+
+/* Modal */
+#modal{ z-index:70; }
+</style>
+</head>
+
+<body class="min-h-screen relative">
+
+<div id="toastWrap"></div>
+
+<!-- NAV -->
+<div id="navBar" class="navBar">
+  <div class="navWrap">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-white/10 border border-white/15 grid place-items-center">🌌</div>
+      <div class="leading-tight">
+        <div class="font-semibold">Skyward</div>
+        <div class="text-[11px] opacity-75">Love Letters</div>
+      </div>
+    </div>
+
+    <div class="navLinks hidden md:flex">
+      <a href="#" onclick="showSection('landing'); return false;">HOME</a>
+      <a id="navSend" href="#" onclick="showSection('send'); return false;">SEND</a>
+      <a id="navVote" href="#" onclick="showSection('vote'); return false;">VOTE</a>
+      <a id="navAdmin" class="hidden" href="#" onclick="showSection('admin'); return false;">ADMIN</a>
+    </div>
+
+    <div class="navRight">
+      <div id="userChip" class="hidden px-3 py-2 rounded-xl bg-white/10 border border-white/15 text-sm"></div>
+
+      <button id="btnLogin" class="pillBtn text-sm">
+        <span>🔐</span><span class="font-semibold">Login</span>
+      </button>
+
+      <button id="btnLogout" class="hidden pillBtn text-sm">
+        <span>↩︎</span><span class="font-semibold">Logout</span>
+      </button>
+
+      <!-- Profile -->
+      <button id="btnProfile" class="iconBtn" title="Profile / My letters">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="rgba(255,255,255,.8)" stroke-width="1.6"/>
+          <path d="M4 20c1.6-3.2 5-5 8-5s6.4 1.8 8 5" stroke="rgba(255,255,255,.8)" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <!-- Notifications -->
+      <button id="btnNoti" class="iconBtn" title="Notifications">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 22a2.2 2.2 0 0 0 2-2H10a2.2 2.2 0 0 0 2 2Z" fill="rgba(255,255,255,.75)"/>
+          <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 7h18s-3 0-3-7Z" stroke="rgba(255,255,255,.8)" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+        <span id="notiBadge" class="badge hidden">0</span>
+      </button>
+
+      <!-- Panels -->
+      <div id="profilePanel" class="panel hidden">
+        <div class="panelHeader">
+          <div class="font-semibold text-sm">My letters</div>
+          <button id="btnMyRefresh" class="text-xs opacity-80 hover:opacity-100 underline underline-offset-4">Refresh</button>
+        </div>
+        <div id="myList" class="panelList">
+          <div class="p-4 text-sm opacity-75">Đăng nhập để xem thư của bạn 💙</div>
+        </div>
+      </div>
+
+      <div id="notiPanel" class="panel hidden">
+        <div class="panelHeader">
+          <div class="font-semibold text-sm">Thông báo</div>
+          <div class="flex items-center gap-3">
+            <label class="text-xs opacity-80 select-none flex items-center gap-2">
+              <input id="dingToggle" type="checkbox" class="accent-blue-400" checked>
+              Ding
+            </label>
+            <button id="btnMarkAll" class="text-xs opacity-80 hover:opacity-100 underline underline-offset-4">Đã đọc</button>
+          </div>
+        </div>
+        <div id="notiList" class="panelList">
+          <div class="p-4 text-sm opacity-75">Đăng nhập để xem thông báo 💙</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LANDING -->
+<section id="landing" class="section active">
+  <div class="hero">
+    <video id="heroVideo" class="bgVideo" autoplay muted loop playsinline></video>
+    <img id="slideA" class="bgSlide" alt="slide"/>
+    <img id="slideB" class="bgSlide" alt="slide"/>
+    <div class="heroOverlay"></div>
+
+    <div class="heroInner">
+      <div class="bigTitle">SKYWARD</div>
+
+      
+
+      <div class="ctaRow">
+        <button class="cta primary" onclick="showSection('send')">✉️ SEND LETTER</button>
+        <button class="cta" onclick="showSection('vote')">⭐ VOTE</button>
+      </div>
+
+      <div class="mt-10 text-sm opacity-80">
+        “Cảm ơn vì đã luôn ở đây, cùng Skyward tạo nên bầu trời 💙”
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEND -->
+<section id="send" class="section py-10 px-6">
+  <div class="max-w-2xl mx-auto glass rounded-2xl p-8 space-y-5 cardHover">
+    <h2 class="text-2xl font-bold text-center">💙 Gửi lời yêu thương</h2>
+
+    <div class="text-sm text-blue-200/90">
+      * Bạn cần đăng nhập Google để gửi thư & bình chọn.
+    </div>
+
+    <label class="flex items-center gap-2 text-sm text-blue-200/90 select-none">
+      <input id="chimeToggle" type="checkbox" class="accent-blue-400" checked />
+      Bật âm thanh “chime” (tuỳ chọn)
+    </label>
+
+    <input id="nickname" placeholder="Tên / nickname Sky"
+      class="w-full p-3 rounded-xl bg-white/10 border border-white/20 focus:outline-none"/>
+
+    <textarea id="message"
+      placeholder="Bạn muốn nói gì với Tùng nhân ngày sinh nhật?"
+      maxlength="800"
+      oninput="updateCounter()"
+      class="w-full p-4 h-44 rounded-xl bg-white/10 border border-white/20 focus:outline-none"></textarea>
+
+    <div class="flex items-center justify-between text-sm text-blue-200/90">
+      <span class="opacity-80">Hãy viết thật ấm áp nhé ✨</span>
+      <span><span id="counter">0</span>/800</span>
+    </div>
+
+    <button id="btnSend" onclick="submitLetter()"
+      class="w-full py-3 rounded-2xl bg-white text-slate-900 hover:bg-white/95 transition font-semibold disabled:opacity-40">
+      💙 Gửi thư
+    </button>
+
+    <div id="thankyou" class="hidden text-center text-blue-200 mt-2">
+      ✨ Cảm ơn Sky đã gửi lời chúc. Bức thư của bạn đang chờ được lan toả 💌
+    </div>
+
+    <div class="text-center pt-2">
+      <button onclick="showSection('landing')" class="text-sm text-blue-200 hover:underline">← Quay lại</button>
+    </div>
+  </div>
+</section>
+
+<!-- VOTE -->
+<section id="vote" class="section py-10 px-6">
+  <div class="max-w-5xl mx-auto space-y-7">
+    <div class="text-center space-y-2">
+      <h2 class="text-2xl font-bold">⭐ Bình chọn bức thư chạm trái tim nhất</h2>
+      <div class="text-sm text-blue-200/90">
+        * Mỗi tài khoản chỉ bình chọn 1 lần. Khi đã bình chọn, tim sẽ khoá 💙
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6">
+      <div class="font-semibold mb-4">🏆 Top 3 thư được yêu thích</div>
+      <div id="top3" class="grid md:grid-cols-3 gap-4"></div>
+    </div>
+
+    <div>
+      <div class="font-semibold mb-3">💌 Danh sách thư</div>
+      <div id="letters" class="grid md:grid-cols-2 gap-5"></div>
+    </div>
+
+    <div class="text-center pt-2">
+      <button onclick="showSection('landing')" class="text-sm text-blue-200 hover:underline">← Quay lại</button>
+    </div>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section id="admin" class="section py-10 px-6">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <div class="text-center space-y-2">
+      <h2 class="text-2xl font-bold">🛠️ Admin • Quản lý letters</h2>
+      <div class="text-sm text-blue-200/90">
+        * Chỉ tài khoản admin mới thấy trang này. Có thể Ẩn/Hiện hoặc Xoá letter.
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-5">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div class="font-semibold">📬 Danh sách letters</div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <label class="text-xs opacity-85 select-none flex items-center gap-2">
+            <input id="adminShowHidden" type="checkbox" class="accent-blue-400" checked>
+            Hiện cả thư đã ẩn
+          </label>
+
+          <button id="btnBackfill" class="text-xs opacity-85 hover:opacity-100 underline underline-offset-4">
+            Backfill hidden:false
+          </button>
+
+          <button id="btnAdminRefresh" class="text-xs opacity-80 hover:opacity-100 underline underline-offset-4">
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div id="adminList" class="mt-4 grid md:grid-cols-2 gap-5"></div>
+      <div id="adminHint" class="mt-3 text-xs opacity-75"></div>
+    </div>
+
+    <div class="text-center pt-2">
+      <button onclick="showSection('landing')" class="text-sm text-blue-200 hover:underline">← Quay lại</button>
+    </div>
+  </div>
+</section>
+
+<footer class="text-center text-blue-200 text-sm py-10 px-6">
+  <p class="mb-2 italic">“Cảm ơn vì đã luôn ở đây, cùng nhau tạo nên bầu trời Skyward 💙”</p>
+  <p>Minigame được thực hiện bởi Skyward</p>
+</footer>
+
+<!-- POPUP -->
+<div id="modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 grid place-items-center p-6">
+  <div class="glass max-w-2xl w-full rounded-2xl p-6">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div id="mName" class="font-semibold text-blue-200"></div>
+        <div id="mMeta" class="text-xs text-blue-200/70 mt-1"></div>
+      </div>
+      <button onclick="closeModal()" class="px-3 py-2 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20">✕</button>
+    </div>
+    <div id="mMsg" class="mt-5 whitespace-pre-wrap leading-relaxed"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit,
+    getDocs, doc, runTransaction, getDoc, where, onSnapshot, writeBatch,
+    updateDoc, deleteDoc, startAfter
+  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBsZcMMQQfXEVjj7pqidMTZDeMWuqEDLPI",
+    authDomain: "skyward-loveletters.firebaseapp.com",
+    projectId: "skyward-loveletters",
+    storageBucket: "skyward-loveletters.firebasestorage.app",
+    messagingSenderId: "607775932393",
+    appId: "1:607775932393:web:d966b203522954f9d09578",
+    measurementId: "G-N69HH8BWQ4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // ===== Admin config =====
+  // ✅ Thay email admin của bạn vào đây
+  const ADMIN_EMAILS = new Set([
+    "skyward4mtp@gmail.com"
+  ]);
+  function isAdminUser(user){
+    if(!user) return false;
+    const email = (user.email || "").toLowerCase();
+    return ADMIN_EMAILS.has(email);
+  }
+
+  // ===== Hero media (optional) =====
+  // NOTE: nên rename file không có space để tránh lỗi deploy (vd: "./led-pnt.mp4")
+  const VIDEO_URL = "./LED PNT.mp4";
+  const SLIDES = [];
+  const heroVideo = document.getElementById("heroVideo");
+  const slideA = document.getElementById("slideA");
+  const slideB = document.getElementById("slideB");
+  let slideIdx = 0;
+  let slideOnA = true;
+
+  function startSlideshow(){
+    heroVideo.style.display = "none";
+    slideA.style.display = "block";
+    slideB.style.display = "block";
+    slideA.classList.add("active");
+    slideB.classList.remove("active");
+    if(!SLIDES.length){
+      slideA.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Cdefs%3E%3CradialGradient id='g' cx='60%25' cy='20%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%233B82F6' stop-opacity='.35'/%3E%3Cstop offset='65%25' stop-color='%23050A14' stop-opacity='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='url(%23g)'/%3E%3C/svg%3E";
+      slideB.src = slideA.src;
+      return;
+    }
+    slideA.src = SLIDES[0];
+    slideB.src = SLIDES[1 % SLIDES.length];
+    setInterval(()=>{
+      slideIdx = (slideIdx + 1) % SLIDES.length;
+      const nextSrc = SLIDES[slideIdx];
+      if(slideOnA){
+        slideB.src = nextSrc;
+        slideB.classList.add("active");
+        slideA.classList.remove("active");
+      }else{
+        slideA.src = nextSrc;
+        slideA.classList.add("active");
+        slideB.classList.remove("active");
+      }
+      slideOnA = !slideOnA;
+    }, 4200);
+  }
+
+  async function initHeroMedia(){
+    slideA.style.display = "none";
+    slideB.style.display = "none";
+    if(!VIDEO_URL){
+      startSlideshow();
+      return;
+    }
+    try{
+      heroVideo.src = VIDEO_URL;
+      heroVideo.style.display = "block";
+      await heroVideo.play();
+    }catch(e){
+      startSlideshow();
+    }
+  }
+  initHeroMedia();
+
+  // ===== nav scroll =====
+  const navBar = document.getElementById("navBar");
+  window.addEventListener("scroll", ()=>{
+    if(window.scrollY > 10) navBar.classList.add("scrolled");
+    else navBar.classList.remove("scrolled");
+  });
+
+  // ===== user interaction (audio permission) =====
+  let userInteracted = false;
+  window.addEventListener("pointerdown", ()=>{ userInteracted = true; }, { once:true });
+
+  // ===== UI helpers =====
+  window.showSection = (id) => {
+    const user = auth.currentUser;
+    const admin = isAdminUser(user);
+
+    // ✅ Admin chỉ được xem danh sách letters
+    if(admin && (id === "send" || id === "vote")){
+      id = "admin";
+    }
+
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if(id==='vote') refreshVotePage();
+    if(id==='send') syncSendButton();
+    if(id==='admin') refreshAdminPage().catch(()=>{});
+  };
+  window.updateCounter = () => {
+    document.getElementById('counter').innerText =
+      document.getElementById('message').value.length;
+  };
+
+  function toast(message, icon="💙", ms=2200){
+    const wrap = document.getElementById("toastWrap");
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-white/10 border border-white/15 grid place-items-center">${icon}</div>
+        <div class="text-sm text-blue-50/95">${message}</div>
+      </div>
+      <div class="toastBar"><i style="--t:${ms}ms"></i></div>
+    `;
+    wrap.appendChild(el);
+    setTimeout(()=>{ el.classList.add("toastOut"); }, ms);
+    setTimeout(()=>{ el.remove(); }, ms+320);
+  }
+
+  function meteorBurst(){
+    const n = 2 + Math.floor(Math.random()*2);
+    for(let i=0;i<n;i++){
+      const m=document.createElement('div');
+      m.className='meteor';
+      m.style.top = (10 + Math.random()*35) + '%';
+      m.style.left = (-30 - Math.random()*30) + 'px';
+      m.style.animationDelay = (i*120) + 'ms';
+      document.body.appendChild(m);
+      setTimeout(()=>m.remove(), 1400);
+    }
+  }
+
+  function sparkleBurstAt(x, y){
+    const count = 18;
+    for(let i=0;i<count;i++){
+      const p = document.createElement("div");
+      const isStar = Math.random() < 0.42;
+      p.className = "sparkBurst" + (isStar ? " star" : "");
+      p.style.left = x + "px";
+      p.style.top  = y + "px";
+      const ang = Math.random()*Math.PI*2;
+      const r = 42 + Math.random()*70;
+      p.style.setProperty("--dx", (Math.cos(ang)*r) + "px");
+      p.style.setProperty("--dy", (Math.sin(ang)*r) + "px");
+      p.style.transform = `scale(${0.75 + Math.random()*0.7})`;
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(), 950);
+    }
+  }
+
+  function playChime(){
+    const toggle = document.getElementById("chimeToggle");
+    if(toggle && !toggle.checked) return;
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AC();
+      const now = ctx.currentTime;
+
+      const o1 = ctx.createOscillator();
+      const g1 = ctx.createGain();
+      o1.type = "sine";
+      o1.frequency.setValueAtTime(880, now);
+      o1.frequency.exponentialRampToValueAtTime(1320, now + 0.12);
+      g1.gain.setValueAtTime(0.0001, now);
+      g1.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+      g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+      const o2 = ctx.createOscillator();
+      const g2 = ctx.createGain();
+      o2.type = "triangle";
+      o2.frequency.setValueAtTime(660, now);
+      o2.frequency.exponentialRampToValueAtTime(990, now + 0.14);
+      g2.gain.setValueAtTime(0.0001, now);
+      g2.gain.exponentialRampToValueAtTime(0.07, now + 0.03);
+      g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+
+      o1.connect(g1).connect(ctx.destination);
+      o2.connect(g2).connect(ctx.destination);
+      o1.start(now); o2.start(now);
+      o1.stop(now + 0.25); o2.stop(now + 0.28);
+      setTimeout(()=>ctx.close(), 450);
+    }catch(e){}
+  }
+
+  // ===== ding for notifications =====
+  function playDing(){
+    const toggle = document.getElementById("dingToggle");
+    if(toggle && !toggle.checked) return;
+    if(!userInteracted) return;
+
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AC();
+      const now = ctx.currentTime;
+
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(1046.5, now);
+      o.frequency.exponentialRampToValueAtTime(1318.5, now + 0.08);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.08, now + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.20);
+      o.connect(g).connect(ctx.destination);
+      o.start(now);
+      o.stop(now + 0.22);
+
+      setTimeout(()=>ctx.close(), 350);
+    }catch(e){}
+  }
+
+  // ===== Panels =====
+  const btnNoti = document.getElementById("btnNoti");
+  const notiBadge = document.getElementById("notiBadge");
+  const notiPanel = document.getElementById("notiPanel");
+  const notiList = document.getElementById("notiList");
+  const btnMarkAll = document.getElementById("btnMarkAll");
+
+  const btnProfile = document.getElementById("btnProfile");
+  const profilePanel = document.getElementById("profilePanel");
+  const myList = document.getElementById("myList");
+  const btnMyRefresh = document.getElementById("btnMyRefresh");
+
+  function closePanels(){
+    notiPanel.classList.add("hidden");
+    profilePanel.classList.add("hidden");
+  }
+  function togglePanel(which){
+    if(which === "noti"){
+      profilePanel.classList.add("hidden");
+      notiPanel.classList.toggle("hidden");
+      if(!notiPanel.classList.contains("hidden")) renderNoti(); // ✅ không auto markAllRead
+    }else{
+      notiPanel.classList.add("hidden");
+      profilePanel.classList.toggle("hidden");
+      if(!profilePanel.classList.contains("hidden")) refreshMyLetters().catch(()=>{});
+    }
+  }
+
+  btnNoti.onclick = (e)=>{ e.stopPropagation(); togglePanel("noti"); };
+  btnProfile.onclick = (e)=>{ e.stopPropagation(); togglePanel("profile"); };
+  btnMyRefresh.onclick = (e)=>{ e.stopPropagation(); refreshMyLetters().catch(()=>{}); };
+  btnMarkAll.onclick = (e)=>{ e.stopPropagation(); markAllRead().catch(()=>{}); };
+
+  document.addEventListener("click", (e)=>{
+    if(!notiPanel.contains(e.target) && !btnNoti.contains(e.target) &&
+       !profilePanel.contains(e.target) && !btnProfile.contains(e.target)){
+      closePanels();
+    }
+  });
+
+  // ===== Auth =====
+  const btnLogin = document.getElementById('btnLogin');
+  const btnLogout = document.getElementById('btnLogout');
+  const userChip = document.getElementById('userChip');
+
+  const navAdmin = document.getElementById("navAdmin");
+  const navSend  = document.getElementById("navSend");
+  const navVote  = document.getElementById("navVote");
+
+  btnLogin.onclick = async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch (e) { console.error(e); toast(`Login lỗi: ${e.code || e.message}`, "⚠️", 3800); }
+  };
+  btnLogout.onclick = async () => { await signOut(auth); };
+
+  onAuthStateChanged(auth, async (user) => {
+    const admin = isAdminUser(user);
+
+    if(user){
+      userChip.classList.remove('hidden');
+      userChip.textContent = `💙 ${user.displayName || "Sky"}`;
+      btnLogin.classList.add('hidden');
+      btnLogout.classList.remove('hidden');
+      toast("Đăng nhập thành công 💙", "✨", 1700);
+
+      if(!admin) startNotiListener(user.uid);
+      else stopNotiListener();
+    }else{
+      userChip.classList.add('hidden');
+      btnLogin.classList.remove('hidden');
+      btnLogout.classList.add('hidden');
+
+      stopNotiListener();
+      notiBadge.classList.add("hidden");
+      notiList.innerHTML = `<div class="p-4 text-sm opacity-75">Đăng nhập để xem thông báo 💙</div>`;
+      myList.innerHTML = `<div class="p-4 text-sm opacity-75">Đăng nhập để xem thư của bạn 💙</div>`;
+      closePanels();
+    }
+
+    // ===== Admin mode UI (admin chỉ xem danh sách letters) =====
+    if(admin){
+      navAdmin.classList.remove("hidden");
+      navSend.classList.add("hidden");
+      navVote.classList.add("hidden");
+
+      // Ẩn panel profile/noti để đúng "admin chỉ xem letters list"
+      closePanels();
+
+      // Nếu đang ở send/vote thì chuyển về admin
+      const sendActive = document.getElementById("send").classList.contains("active");
+      const voteActive = document.getElementById("vote").classList.contains("active");
+      if(sendActive || voteActive) showSection("admin");
+    }else{
+      navAdmin.classList.add("hidden");
+      navSend.classList.remove("hidden");
+      navVote.classList.remove("hidden");
+    }
+
+    syncSendButton();
+
+    // refresh current page if needed
+    if(document.getElementById('vote').classList.contains('active')) refreshVotePage();
+    if(document.getElementById('admin').classList.contains('active')) refreshAdminPage().catch(()=>{});
+  });
+
+  function syncSendButton(){
+    const user = auth.currentUser;
+    const admin = isAdminUser(user);
+    document.getElementById('btnSend').disabled = (!user) || admin;
+  }
+
+  // ===== Submit letter =====
+  window.submitLetter = async () => {
+    const user = auth.currentUser;
+    if(!user){ toast("Bạn cần đăng nhập Google để gửi thư 💙", "🔐"); return; }
+    if(isAdminUser(user)){ toast("Admin không gửi thư ở chế độ quản trị 🙈", "🛠️"); return; }
+
+    const btn = document.getElementById("btnSend");
+    const name = document.getElementById('nickname').value.trim();
+    const msg  = document.getElementById('message').value.trim();
+    if(!name || !msg){ toast("Vui lòng nhập đầy đủ nha 💙", "📝"); return; }
+
+    btn.disabled = true;
+    btn.textContent = "⏳ Đang gửi...";
+
+    try{
+      await addDoc(collection(db, "letters"), {
+        uid: user.uid,
+        name,
+        msg,
+        createdAt: serverTimestamp(),
+        votes: 0,
+        hidden: false // ✅ quan trọng
+      });
+
+      meteorBurst();
+      const card = document.querySelector("#send .glass");
+      const rect = card?.getBoundingClientRect();
+      if(rect) sparkleBurstAt(rect.left + rect.width*0.5, rect.top + rect.height*0.22);
+      playChime();
+
+      toast("Gửi thư thành công! Cảm ơn Sky 💙", "✨", 2600);
+      document.getElementById('thankyou').classList.remove('hidden');
+      document.getElementById('nickname').value="";
+      document.getElementById('message').value="";
+      window.updateCounter();
+
+      if(!profilePanel.classList.contains("hidden")) refreshMyLetters().catch(()=>{});
+    }catch(e){
+      console.error(e);
+      toast(`Gửi thư lỗi: ${e.code || e.message}`, "⚠️", 4200);
+    }finally{
+      btn.disabled = false;
+      btn.textContent = "💙 Gửi thư";
+      syncSendButton();
+    }
+  };
+
+  // ===== Vote: 1 per uid + create notification =====
+  async function hasVoted(uid){
+    const vRef = doc(db, "votes", uid);
+    const snap = await getDoc(vRef);
+    return snap.exists();
+  }
+
+  async function voteLetter(letterId){
+    const user = auth.currentUser;
+    if(!user){ toast("Bạn cần đăng nhập Google để bình chọn 💙", "🔐"); return false; }
+    if(isAdminUser(user)){ toast("Admin không vote ở chế độ quản trị 🙈", "🛠️"); return false; }
+
+    const vRef = doc(db, "votes", user.uid);
+    const lRef = doc(db, "letters", letterId);
+
+    try{
+      await runTransaction(db, async (tx) => {
+        const vSnap = await tx.get(vRef);
+        if(vSnap.exists()) throw new Error("ALREADY_VOTED");
+
+        const lSnap = await tx.get(lRef);
+        if(!lSnap.exists()) throw new Error("LETTER_NOT_FOUND");
+
+        const letterData = lSnap.data();
+        if(letterData.hidden === true) throw new Error("LETTER_HIDDEN");
+
+        const currVotes = (letterData.votes || 0);
+        const ownerUid = letterData.uid;
+
+        tx.update(lRef, { votes: currVotes + 1 });
+        tx.set(vRef, { letterId, createdAt: serverTimestamp() });
+
+        if(ownerUid && ownerUid !== user.uid){
+          const nRef = doc(collection(db, "notifications"));
+          tx.set(nRef, {
+            toUid: ownerUid,
+            fromUid: user.uid,
+            letterId,
+            type: "vote",
+            read: false,
+            createdAt: serverTimestamp()
+          });
+        }
+      });
+      return true;
+    }catch(e){
+      if(e.message === "ALREADY_VOTED"){
+        toast("Sky đã bình chọn rồi 💙", "💙", 2400);
+        return false;
+      }
+      if(e.message === "LETTER_HIDDEN"){
+        toast("Bức thư này đang bị ẩn 🙈", "⚠️", 2600);
+        return false;
+      }
+      console.error(e);
+      toast(`Vote lỗi: ${e.code || e.message}`, "⚠️", 4200);
+      return false;
+    }
+  }
+
+  // ===== Notifications data =====
+  let notiUnsub = null;
+  let notiCache = [];
+  let lastUnreadCount = 0;
+
+  function fmtTime(ts){
+    try{
+      if(!ts) return "";
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleString("vi-VN", { hour:"2-digit", minute:"2-digit", day:"2-digit", month:"2-digit" });
+    }catch{ return ""; }
+  }
+
+  function renderNoti(){
+    const user = auth.currentUser;
+    if(!user){
+      notiList.innerHTML = `<div class="p-4 text-sm opacity-75">Đăng nhập để xem thông báo 💙</div>`;
+      notiBadge.classList.add("hidden");
+      return;
+    }
+
+    if(!notiCache.length){
+      notiList.innerHTML = `<div class="p-4 text-sm opacity-75">Chưa có thông báo nào ✨</div>`;
+      notiBadge.classList.add("hidden");
+      return;
+    }
+
+    const unread = notiCache.filter(n=>!n.read).length;
+    if(unread>0){
+      notiBadge.textContent = unread > 99 ? "99+" : String(unread);
+      notiBadge.classList.remove("hidden");
+    }else{
+      notiBadge.classList.add("hidden");
+    }
+
+    notiList.innerHTML = notiCache.map(n=>{
+      const msg = n.type === "vote"
+        ? `Thư của bạn vừa được bình chọn 💙`
+        : `Bạn có thông báo mới 💙`;
+      const sub = `${fmtTime(n.createdAt)}${n.letterId ? " • nhấn để mở thư" : ""}`;
+      return `
+        <div class="panelItem" data-letter="${n.letterId || ""}">
+          <div class="${n.read ? "muted" : ""}">
+            <div class="text-sm font-semibold">${msg}</div>
+            <div class="text-xs opacity-75 mt-1">${sub}</div>
+          </div>
+          <div style="margin-left:auto">
+            ${n.read ? "" : `<div class="notiDot" title="Chưa đọc"></div>`}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    notiList.querySelectorAll("[data-letter]").forEach(el=>{
+      el.onclick = ()=>{
+        const letterId = el.getAttribute("data-letter");
+        closePanels();
+        if(letterId){
+          window.__openLetterId = letterId;
+          showSection("vote");
+        }
+      };
+    });
+  }
+
+  async function markAllRead(){
+    const user = auth.currentUser;
+    if(!user || !notiCache.length) return;
+    const unread = notiCache.filter(n=>!n.read);
+    if(!unread.length) return;
+
+    const batch = writeBatch(db);
+    unread.forEach(n=> batch.update(doc(db, "notifications", n.id), { read: true }) );
+    await batch.commit();
+
+    notiCache = notiCache.map(n=>({ ...n, read:true }));
+    lastUnreadCount = 0;
+    renderNoti();
+  }
+
+  function showNotiIndexHint(err){
+    const msg = (err?.message || "").toLowerCase();
+    if(msg.includes("index")){
+      toast("Firestore cần tạo Index cho Notifications (toUid + createdAt). Mở Console để tạo.", "⚠️", 5200);
+      notiList.innerHTML = `
+        <div class="p-4 text-sm opacity-80">
+          ⚠️ Firestore yêu cầu tạo <b>Composite Index</b> cho Notifications.<br/>
+          <div class="text-xs opacity-75 mt-2">
+            Mở <b>Browser Console</b> sẽ thấy link “Create index” → bấm để tạo.
+          </div>
+        </div>
+      `;
+      return true;
+    }
+    return false;
+  }
+
+  function startNotiListener(uid){
+    if(notiUnsub) notiUnsub();
+
+    const qN = query(
+      collection(db, "notifications"),
+      where("toUid", "==", uid),
+      orderBy("createdAt", "desc"),
+      limit(25)
+    );
+
+    notiUnsub = onSnapshot(qN, (snap)=>{
+      notiCache = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      const unread = notiCache.filter(n=>!n.read).length;
+
+      const panelClosed = notiPanel.classList.contains("hidden");
+      if(panelClosed && unread > lastUnreadCount){
+        playDing();
+        toast("Bạn có thông báo mới 💙", "🔔", 1600);
+      }
+      lastUnreadCount = unread;
+
+      renderNoti();
+    }, (err)=>{
+      console.error("NOTI LISTENER ERROR:", err);
+      if(!showNotiIndexHint(err)){
+        toast("Lỗi load thông báo. Xem Console để biết chi tiết.", "⚠️", 4200);
+      }
+    });
+  }
+
+  function stopNotiListener(){
+    if(notiUnsub) notiUnsub();
+    notiUnsub = null;
+    notiCache = [];
+    lastUnreadCount = 0;
+  }
+
+  // ===== Profile: my letters =====
+  async function refreshMyLetters(){
+    const user = auth.currentUser;
+    if(!user){
+      myList.innerHTML = `<div class="p-4 text-sm opacity-75">Đăng nhập để xem thư của bạn 💙</div>`;
+      return;
+    }
+
+    // Admin: theo yêu cầu "chỉ xem danh sách letters", không dùng panel này
+    if(isAdminUser(user)){
+      myList.innerHTML = `<div class="p-4 text-sm opacity-75">Admin mode 🛠️</div>`;
+      return;
+    }
+
+    myList.innerHTML = `<div class="p-4 text-sm opacity-75">Đang tải…</div>`;
+
+    try{
+      const qMine = query(
+        collection(db, "letters"),
+        where("uid", "==", user.uid),
+        orderBy("createdAt", "desc"),
+        limit(50)
+      );
+      const snap = await getDocs(qMine);
+      const arr = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+
+      if(!arr.length){
+        myList.innerHTML = `<div class="p-4 text-sm opacity-75">Bạn chưa gửi thư nào ✨</div>`;
+        return;
+      }
+
+      myList.innerHTML = arr.map(l=>{
+        const preview = (l.msg||"").slice(0,90) + ((l.msg||"").length>90 ? "…" : "");
+        return `
+          <div class="panelItem" data-open="${l.id}">
+            <div>
+              <div class="text-sm font-semibold">${(l.name||"Sky").toString().replaceAll("<","&lt;").replaceAll(">","&gt;")}</div>
+              <div class="text-xs opacity-75 mt-1">❤️ ${(l.votes||0)} vote</div>
+              <div class="text-xs opacity-80 mt-2">${preview.toString().replaceAll("<","&lt;").replaceAll(">","&gt;")}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      myList.querySelectorAll("[data-open]").forEach(el=>{
+        el.onclick = ()=>{
+          const id = el.getAttribute("data-open");
+          const l = arr.find(x=>x.id===id);
+          if(l) openModal(l);
+        };
+      });
+    }catch(e){
+      console.error(e);
+      myList.innerHTML = `<div class="p-4 text-sm opacity-75">Lỗi tải My letters: ${e.code || e.message}</div>`;
+      if((e.message||"").toLowerCase().includes("index")){
+        myList.innerHTML += `<div class="px-4 pb-4 text-xs opacity-70">
+          * Firestore yêu cầu tạo Index cho query (uid + createdAt). Mở link trong Console log để tạo.
+        </div>`;
+      }
+    }
+  }
+
+  // ===== Vote page render =====
+  async function fetchLetters(){
+    // ✅ user thường: chỉ lấy hidden == false
+    const q1 = query(
+      collection(db,"letters"),
+      where("hidden","==", false),
+      orderBy("createdAt","desc"),
+      limit(50)
+    );
+    const snap = await getDocs(q1);
+    return snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  }
+  async function fetchTop3(){
+    // ✅ user thường: chỉ lấy hidden == false
+    const q2 = query(
+      collection(db,"letters"),
+      where("hidden","==", false),
+      orderBy("votes","desc"),
+      limit(3)
+    );
+    const snap = await getDocs(q2);
+    return snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  }
+
+  function esc(s){ return (s||"").toString().replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+  function letterCardHTML(l, voted, myPickId){
+    const preview = (l.msg||"").slice(0,140) + ((l.msg||"").length>140 ? "…" : "");
+    const disabled = voted ? "opacity-60 cursor-not-allowed" : "";
+    const picked = myPickId === l.id;
+
+    return `
+      <div class="glass rounded-2xl p-6 cardHover cursor-pointer" data-open="${l.id}">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="font-semibold text-blue-200">${esc(l.name)}</div>
+            <div class="text-xs text-blue-200/70 mt-1">❤️ ${l.votes||0} lượt yêu thích</div>
+          </div>
+
+          <button class="voteBtn px-4 py-2 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 ${disabled}"
+            data-vote="${l.id}" ${voted ? "disabled" : ""}>
+            ${picked ? "💙 Đã bình chọn" : "❤️ Bình chọn"}
+          </button>
+        </div>
+
+        <div class="mt-4 text-sm leading-relaxed text-white/90">${esc(preview)}</div>
+      </div>
+    `;
+  }
+
+  function topCardHTML(l, rank){
+    const preview = (l.msg||"").slice(0,120) + ((l.msg||"").length>120 ? "…" : "");
+    const medal = rank===1 ? "🥇" : rank===2 ? "🥈" : "🥉";
+    return `
+      <div class="glass rounded-2xl p-5 cardHover cursor-pointer" data-open="${l.id}">
+        <div class="flex items-center justify-between">
+          <div class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/10 border border-white/15">
+            <span class="w-2 h-2 rounded-full" style="background: rgba(255,215,120,.95); box-shadow:0 0 18px rgba(255,215,120,.55)"></span>
+            <span class="font-semibold">${medal} Top ${rank}</span>
+          </div>
+          <div class="text-xs text-blue-200/80">❤️ ${l.votes||0}</div>
+        </div>
+        <div class="mt-3 text-blue-100 font-semibold">${esc(l.name)}</div>
+        <div class="mt-3 text-sm text-white/90 leading-relaxed">${esc(preview)}</div>
+      </div>
+    `;
+  }
+
+  async function refreshVotePage(){
+    const user = auth.currentUser;
+    if(isAdminUser(user)){
+      // admin không dùng vote page
+      document.getElementById('top3').innerHTML = `<div class="text-sm text-blue-200/80">Admin mode 🛠️</div>`;
+      document.getElementById('letters').innerHTML = ``;
+      return;
+    }
+
+    const voted = user ? await hasVoted(user.uid) : false;
+    let myPickId = null;
+
+    if(user && voted){
+      const vSnap = await getDoc(doc(db,"votes", user.uid));
+      myPickId = vSnap.data()?.letterId || null;
+    }
+
+    const top = await fetchTop3();
+    document.getElementById('top3').innerHTML =
+      top.length ? top.map((l,idx)=>topCardHTML(l, idx+1)).join("") :
+      `<div class="text-sm text-blue-200/80">Chưa có dữ liệu top. Hãy là người đầu tiên gửi thư 💙</div>`;
+
+    const letters = await fetchLetters();
+    document.getElementById('letters').innerHTML =
+      letters.length ? letters.map(l=>letterCardHTML(l, voted, myPickId)).join("") :
+      `<div class="text-sm text-blue-200/80">Chưa có thư nào. Bạn hãy gửi thư đầu tiên nha 💙</div>`;
+
+    document.querySelectorAll("[data-open]").forEach(el=>{
+      el.onclick = (e)=>{
+        if(e.target && e.target.closest && e.target.closest(".voteBtn")) return;
+        const id = el.getAttribute("data-open");
+        const l = letters.find(x=>x.id===id) || top.find(x=>x.id===id);
+        if(l) openModal(l);
+      };
+    });
+
+    document.querySelectorAll("[data-vote]").forEach(btn=>{
+      btn.onclick = async (e)=>{
+        e.stopPropagation();
+        const id = btn.getAttribute("data-vote");
+        const ok = await voteLetter(id);
+        if(ok){
+          const r = btn.getBoundingClientRect();
+          sparkleBurstAt(r.left + r.width/2, r.top + r.height/2);
+          toast("Sky đã bình chọn 💙", "💙", 2400);
+          await refreshVotePage();
+          if(!profilePanel.classList.contains("hidden")) refreshMyLetters().catch(()=>{});
+        }
+      };
+    });
+
+    if(window.__openLetterId){
+      const target = window.__openLetterId;
+      window.__openLetterId = null;
+      const found = letters.find(x=>x.id===target) || top.find(x=>x.id===target);
+      if(found) openModal(found);
+    }
+  }
+
+  // ===== Modal =====
+  const modal = document.getElementById('modal');
+  window.closeModal = ()=> modal.classList.add('hidden');
+
+  function openModal(l){
+    document.getElementById('mName').textContent = l.name || "Sky";
+    document.getElementById('mMeta').textContent = `❤️ ${l.votes||0} lượt yêu thích${l.hidden ? " • 🙈 ẩn" : ""}`;
+    document.getElementById('mMsg').textContent = l.msg || "";
+    modal.classList.remove('hidden');
+  }
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) window.closeModal(); });
+
+  // ===== Admin: manage letters + backfill hidden:false =====
+  const adminList = document.getElementById("adminList");
+  const adminHint = document.getElementById("adminHint");
+  const btnAdminRefresh = document.getElementById("btnAdminRefresh");
+  const adminShowHidden = document.getElementById("adminShowHidden");
+  const btnBackfill = document.getElementById("btnBackfill");
+
+  btnAdminRefresh?.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    refreshAdminPage().catch(()=>{});
+  });
+  adminShowHidden?.addEventListener("change", ()=>{
+    refreshAdminPage().catch(()=>{});
+  });
+  btnBackfill?.addEventListener("click", async (e)=>{
+    e.stopPropagation();
+    await backfillHiddenFalse().catch(()=>{});
+    await refreshAdminPage().catch(()=>{});
+  });
+
+  function adminCardHTML(l){
+    const preview = (l.msg||"").slice(0,160) + ((l.msg||"").length>160 ? "…" : "");
+    const hidden = !!l.hidden;
+    const badge = hidden
+      ? `<span class="px-2 py-1 rounded-full bg-white/10 border border-white/15 text-xs">🙈 ẨN</span>`
+      : `<span class="px-2 py-1 rounded-full bg-white/10 border border-white/15 text-xs">👁️ HIỆN</span>`;
+
+    return `
+      <div class="glass rounded-2xl p-5 cardHover" data-admin-open="${l.id}">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="font-semibold text-blue-200">${esc(l.name)}</div>
+            <div class="text-xs text-blue-200/70 mt-1 flex items-center gap-2">
+              <span>❤️ ${l.votes||0}</span>
+              ${badge}
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button class="px-3 py-2 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 text-xs"
+              data-admin-toggle="${l.id}">
+              ${hidden ? "👁️ Hiện" : "🙈 Ẩn"}
+            </button>
+            <button class="px-3 py-2 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 text-xs"
+              data-admin-del="${l.id}">
+              🗑️ Xoá
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-3 text-sm leading-relaxed text-white/90">${esc(preview)}</div>
+      </div>
+    `;
+  }
+
+  async function refreshAdminPage(){
+    const user = auth.currentUser;
+    if(!isAdminUser(user)){
+      adminList.innerHTML = `<div class="text-sm text-blue-200/80">Bạn không có quyền admin.</div>`;
+      adminHint.textContent = "";
+      return;
+    }
+
+    adminList.innerHTML = `<div class="text-sm text-blue-200/80">Đang tải…</div>`;
+    adminHint.textContent = "";
+
+    try{
+      const snap = await getDocs(
+        query(collection(db,"letters"), orderBy("createdAt","desc"), limit(120))
+      );
+      let arr = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+
+      const showHidden = !!adminShowHidden?.checked;
+      if(!showHidden) arr = arr.filter(x=>!x.hidden);
+
+      if(!arr.length){
+        adminList.innerHTML = `<div class="text-sm text-blue-200/80">Không có letter nào.</div>`;
+        return;
+      }
+
+      adminList.innerHTML = arr.map(adminCardHTML).join("");
+
+      // open modal on card click (trừ khi bấm nút)
+      adminList.querySelectorAll("[data-admin-open]").forEach(el=>{
+        el.onclick = (e)=>{
+          if(e.target && e.target.closest && (e.target.closest("[data-admin-toggle]") || e.target.closest("[data-admin-del]"))) return;
+          const id = el.getAttribute("data-admin-open");
+          const l = arr.find(x=>x.id===id);
+          if(l) openModal(l);
+        };
+      });
+
+      // toggle hidden
+      adminList.querySelectorAll("[data-admin-toggle]").forEach(btn=>{
+        btn.onclick = async (e)=>{
+          e.stopPropagation();
+          const id = btn.getAttribute("data-admin-toggle");
+          const l = arr.find(x=>x.id===id);
+          if(!l) return;
+
+          try{
+            await updateDoc(doc(db,"letters", id), { hidden: !l.hidden });
+            toast(!l.hidden ? "Đã ẩn letter 🙈" : "Đã hiện letter 👁️", "🛠️", 1800);
+            await refreshAdminPage();
+          }catch(err){
+            console.error(err);
+            toast(`Không thể cập nhật: ${err.code || err.message}`, "⚠️", 4200);
+          }
+        };
+      });
+
+      // delete
+      adminList.querySelectorAll("[data-admin-del]").forEach(btn=>{
+        btn.onclick = async (e)=>{
+          e.stopPropagation();
+          const id = btn.getAttribute("data-admin-del");
+          try{
+            await deleteDoc(doc(db,"letters", id));
+            toast("Đã xoá letter 🗑️", "🛠️", 1800);
+            await refreshAdminPage();
+          }catch(err){
+            console.error(err);
+            toast(`Không thể xoá: ${err.code || err.message}`, "⚠️", 4200);
+          }
+        };
+      });
+
+    }catch(e){
+      console.error(e);
+      adminList.innerHTML = `<div class="text-sm text-blue-200/80">Lỗi load admin list: ${e.code || e.message}</div>`;
+      if((e.message||"").toLowerCase().includes("index")){
+        adminHint.innerHTML = `* Firestore yêu cầu tạo Index. Mở link “Create index” trong Console log để tạo.`;
+      }
+    }
+  }
+
+  // ✅ Backfill: set hidden:false cho letters cũ (field missing)
+  // Firestore không query trực tiếp "field missing", nên ta scan theo trang (createdAt desc)
+  async function backfillHiddenFalse(){
+    const user = auth.currentUser;
+    if(!isAdminUser(user)){
+      toast("Bạn không có quyền admin.", "⚠️", 2800);
+      return;
+    }
+
+    toast("Bắt đầu backfill hidden:false…", "🧩", 2200);
+    adminHint.textContent = "Đang backfill… (xem tiến trình trong toast)";
+
+    let totalScanned = 0;
+    let totalUpdated = 0;
+
+    // paging
+    let lastDoc = null;
+    const PAGE = 250;
+
+    while(true){
+      const qBase = lastDoc
+        ? query(collection(db,"letters"), orderBy("createdAt","desc"), startAfter(lastDoc), limit(PAGE))
+        : query(collection(db,"letters"), orderBy("createdAt","desc"), limit(PAGE));
+
+      const snap = await getDocs(qBase);
+      if(snap.empty) break;
+
+      const docs = snap.docs;
+      totalScanned += docs.length;
+
+      // update in batches (<= 450 updates cho an toàn)
+      let batch = writeBatch(db);
+      let ops = 0;
+      let updatedThisPage = 0;
+
+      for(const d of docs){
+        const data = d.data() || {};
+        if(typeof data.hidden === "undefined"){
+          batch.update(doc(db,"letters", d.id), { hidden: false });
+          ops++;
+          updatedThisPage++;
+          totalUpdated++;
+
+          if(ops >= 450){
+            await batch.commit();
+            batch = writeBatch(db);
+            ops = 0;
+          }
+        }
+      }
+
+      if(ops > 0) await batch.commit();
+
+      toast(`Backfill: scanned ${totalScanned} • updated ${totalUpdated}`, "🧩", 1600);
+
+      lastDoc = docs[docs.length - 1];
+      if(docs.length < PAGE) break;
+    }
+
+    adminHint.textContent = `Backfill xong ✅ scanned ${totalScanned} • updated ${totalUpdated}`;
+    toast(`Backfill xong ✅ updated ${totalUpdated}`, "✅", 2600);
+  }
+
+  // init
+  syncSendButton();
+  console.log("PROJECT:", firebaseConfig.projectId);
+</script>
+
+</body>
+</html>
