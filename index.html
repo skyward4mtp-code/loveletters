@@ -64,12 +64,16 @@ body{
 .navBar{
   position:fixed; top:0; left:0; right:0;
   z-index:50; padding: 14px 18px;
-  transition: background .25s ease, border-color .25s ease;
+  transition: transform .22s ease, background .25s ease, border-color .25s ease;
+  will-change: transform;
 }
 .navBar.scrolled{
   background: rgba(7, 20, 36, .55);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.navBar.hide{
+  transform: translateY(-110%);
 }
 .navWrap{
   max-width: 1100px;
@@ -177,30 +181,6 @@ body{
   text-transform: uppercase;
   text-shadow: 0 22px 70px rgba(0,0,0,.45);
 }
-.subTitle{
-  margin-top: 10px;
-  font-size: 12px;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  opacity:.78;
-}
-
-.socialRow{
-  margin-top: 18px;
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  opacity:.9;
-}
-.socialIcon{
-  width:32px; height:32px;
-  border-radius: 999px;
-  display:grid; place-items:center;
-  background: rgba(255,255,255,.10);
-  border:1px solid rgba(255,255,255,.16);
-  transition: transform .18s ease, background .18s ease;
-}
-.socialIcon:hover{ transform: translateY(-1px); background: rgba(255,255,255,.16); }
 
 .ctaRow{
   margin-top: 26px;
@@ -403,8 +383,6 @@ body{
     <div class="heroInner">
       <div class="bigTitle">SKYWARD</div>
 
-      
-
       <div class="ctaRow">
         <button class="cta primary" onclick="showSection('send')">✉️ SEND LETTER</button>
         <button class="cta" onclick="showSection('vote')">⭐ VOTE</button>
@@ -418,7 +396,7 @@ body{
 </section>
 
 <!-- SEND -->
-<section id="send" class="section py-10 px-6">
+<section id="send" class="section pt-28 pb-10 px-6">
   <div class="max-w-2xl mx-auto glass rounded-2xl p-8 space-y-5 cardHover">
     <h2 class="text-2xl font-bold text-center">💙 Gửi lời yêu thương</h2>
 
@@ -461,12 +439,12 @@ body{
 </section>
 
 <!-- VOTE -->
-<section id="vote" class="section py-10 px-6">
+<section id="vote" class="section pt-28 pb-10 px-6">
   <div class="max-w-5xl mx-auto space-y-7">
     <div class="text-center space-y-2">
       <h2 class="text-2xl font-bold">⭐ Bình chọn bức thư chạm trái tim nhất</h2>
       <div class="text-sm text-blue-200/90">
-        * Mỗi tài khoản chỉ bình chọn 1 lần. Khi đã bình chọn, tim sẽ khoá 💙
+        * Mỗi tài khoản có 1 bình chọn tại một thời điểm (có thể đổi) 💙
       </div>
     </div>
 
@@ -487,7 +465,7 @@ body{
 </section>
 
 <!-- ADMIN -->
-<section id="admin" class="section py-10 px-6">
+<section id="admin" class="section pt-28 pb-10 px-6">
   <div class="max-w-5xl mx-auto space-y-6">
     <div class="text-center space-y-2">
       <h2 class="text-2xl font-bold">🛠️ Admin • Quản lý letters</h2>
@@ -571,7 +549,6 @@ body{
   const provider = new GoogleAuthProvider();
 
   // ===== Admin config =====
-  // ✅ Thay email admin của bạn vào đây
   const ADMIN_EMAILS = new Set([
     "skyward4mtp@gmail.com"
   ]);
@@ -582,7 +559,6 @@ body{
   }
 
   // ===== Hero media (optional) =====
-  // NOTE: nên rename file không có space để tránh lỗi deploy (vd: "./led-pnt.mp4")
   const VIDEO_URL = "./ledpnt.mp4";
   const SLIDES = [];
   const heroVideo = document.getElementById("heroVideo");
@@ -637,12 +613,39 @@ body{
   }
   initHeroMedia();
 
-  // ===== nav scroll =====
+  // ===== nav auto-hide (scroll down hide, scroll up show) =====
   const navBar = document.getElementById("navBar");
-  window.addEventListener("scroll", ()=>{
-    if(window.scrollY > 10) navBar.classList.add("scrolled");
+  let lastY = window.scrollY;
+  let ticking = false;
+
+  function onScroll(){
+    const y = window.scrollY;
+
+    if(y > 10) navBar.classList.add("scrolled");
     else navBar.classList.remove("scrolled");
-  });
+
+    const goingDown = y > lastY;
+    const delta = Math.abs(y - lastY);
+
+    if(y < 40){
+      navBar.classList.remove("hide");
+    }else{
+      if(delta > 8){
+        if(goingDown) navBar.classList.add("hide");
+        else navBar.classList.remove("hide");
+      }
+    }
+
+    lastY = y;
+    ticking = false;
+  }
+
+  window.addEventListener("scroll", ()=>{
+    if(!ticking){
+      window.requestAnimationFrame(onScroll);
+      ticking = true;
+    }
+  }, { passive:true });
 
   // ===== user interaction (audio permission) =====
   let userInteracted = false;
@@ -653,7 +656,6 @@ body{
     const user = auth.currentUser;
     const admin = isAdminUser(user);
 
-    // ✅ Admin chỉ được xem danh sách letters
     if(admin && (id === "send" || id === "vote")){
       id = "admin";
     }
@@ -751,7 +753,6 @@ body{
     }catch(e){}
   }
 
-  // ===== ding for notifications =====
   function playDing(){
     const toggle = document.getElementById("dingToggle");
     if(toggle && !toggle.checked) return;
@@ -798,7 +799,7 @@ body{
     if(which === "noti"){
       profilePanel.classList.add("hidden");
       notiPanel.classList.toggle("hidden");
-      if(!notiPanel.classList.contains("hidden")) renderNoti(); // ✅ không auto markAllRead
+      if(!notiPanel.classList.contains("hidden")) renderNoti();
     }else{
       notiPanel.classList.add("hidden");
       profilePanel.classList.toggle("hidden");
@@ -857,16 +858,12 @@ body{
       closePanels();
     }
 
-    // ===== Admin mode UI (admin chỉ xem danh sách letters) =====
     if(admin){
       navAdmin.classList.remove("hidden");
       navSend.classList.add("hidden");
       navVote.classList.add("hidden");
-
-      // Ẩn panel profile/noti để đúng "admin chỉ xem letters list"
       closePanels();
 
-      // Nếu đang ở send/vote thì chuyển về admin
       const sendActive = document.getElementById("send").classList.contains("active");
       const voteActive = document.getElementById("vote").classList.contains("active");
       if(sendActive || voteActive) showSection("admin");
@@ -878,7 +875,6 @@ body{
 
     syncSendButton();
 
-    // refresh current page if needed
     if(document.getElementById('vote').classList.contains('active')) refreshVotePage();
     if(document.getElementById('admin').classList.contains('active')) refreshAdminPage().catch(()=>{});
   });
@@ -910,7 +906,7 @@ body{
         msg,
         createdAt: serverTimestamp(),
         votes: 0,
-        hidden: false // ✅ quan trọng
+        hidden: false
       });
 
       meteorBurst();
@@ -936,38 +932,107 @@ body{
     }
   };
 
-  // ===== Vote: 1 per uid + create notification =====
+  // ===== Vote helpers =====
   async function hasVoted(uid){
     const vRef = doc(db, "votes", uid);
     const snap = await getDoc(vRef);
     return snap.exists();
   }
 
+  // ===== Confirm popup (đổi bình chọn) =====
+  function confirmPopup(title, body, okText="Đổi bình chọn", cancelText="Huỷ"){
+    return new Promise((resolve)=>{
+      const wrap = document.createElement("div");
+      wrap.className = "fixed inset-0 z-[90] grid place-items-center p-6 bg-black/60 backdrop-blur-sm";
+      wrap.innerHTML = `
+        <div class="glass w-full max-w-md rounded-2xl p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="font-semibold text-blue-100">${title}</div>
+              <div class="text-sm opacity-85 mt-2 leading-relaxed">${body}</div>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20" data-x>✕</button>
+          </div>
+
+          <div class="mt-5 flex justify-end gap-2">
+            <button class="px-4 py-2 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 text-sm" data-cancel>
+              ${cancelText}
+            </button>
+            <button class="px-4 py-2 rounded-xl bg-white text-slate-900 hover:bg-white/95 text-sm font-semibold" data-ok>
+              ${okText}
+            </button>
+          </div>
+        </div>
+      `;
+      const cleanup = (v)=>{ wrap.remove(); resolve(v); };
+
+      wrap.addEventListener("click", (e)=>{ if(e.target === wrap) cleanup(false); });
+      wrap.querySelector("[data-x]").onclick = ()=> cleanup(false);
+      wrap.querySelector("[data-cancel]").onclick = ()=> cleanup(false);
+      wrap.querySelector("[data-ok]").onclick = ()=> cleanup(true);
+
+      document.body.appendChild(wrap);
+    });
+  }
+
+  // ===== Vote (allow change) =====
   async function voteLetter(letterId){
     const user = auth.currentUser;
-    if(!user){ toast("Bạn cần đăng nhập Google để bình chọn 💙", "🔐"); return false; }
-    if(isAdminUser(user)){ toast("Admin không vote ở chế độ quản trị 🙈", "🛠️"); return false; }
+    if(!user){ toast("Bạn cần đăng nhập Google để bình chọn 💙", "🔐"); return { ok:false }; }
+    if(isAdminUser(user)){ toast("Admin không vote ở chế độ quản trị 🙈", "🛠️"); return { ok:false }; }
 
     const vRef = doc(db, "votes", user.uid);
-    const lRef = doc(db, "letters", letterId);
+    const lRefNew = doc(db, "letters", letterId);
 
     try{
+      // đọc vote hiện tại
+      const vSnap = await getDoc(vRef);
+      const hasOld = vSnap.exists();
+      const oldLetterId = hasOld ? (vSnap.data()?.letterId || null) : null;
+
+      // đã vote đúng thư này
+      if(hasOld && oldLetterId === letterId){
+        toast("Sky đã bình chọn bức thư này rồi 💙", "💙", 2200);
+        return { ok:false, same:true };
+      }
+
+      // có vote cũ -> hỏi confirm đổi
+      if(hasOld && oldLetterId && oldLetterId !== letterId){
+        const agree = await confirmPopup(
+          "Đổi bình chọn?",
+          "Bạn đã bình chọn 1 bức thư trước đó. Nếu đổi, bình chọn cũ sẽ bị gỡ và bình chọn mới sẽ được ghi nhận.",
+          "Đổi bình chọn",
+          "Giữ nguyên"
+        );
+        if(!agree) return { ok:false, cancelled:true };
+      }
+
       await runTransaction(db, async (tx) => {
-        const vSnap = await tx.get(vRef);
-        if(vSnap.exists()) throw new Error("ALREADY_VOTED");
+        // check thư mới
+        const newSnap = await tx.get(lRefNew);
+        if(!newSnap.exists()) throw new Error("LETTER_NOT_FOUND");
+        const newData = newSnap.data();
+        if(newData.hidden === true) throw new Error("LETTER_HIDDEN");
 
-        const lSnap = await tx.get(lRef);
-        if(!lSnap.exists()) throw new Error("LETTER_NOT_FOUND");
+        // trừ vote thư cũ (nếu có)
+        if(hasOld && oldLetterId){
+          const lRefOld = doc(db, "letters", oldLetterId);
+          const oldSnap = await tx.get(lRefOld);
+          if(oldSnap.exists()){
+            const oldData = oldSnap.data();
+            const curr = (oldData.votes || 0);
+            tx.update(lRefOld, { votes: Math.max(0, curr - 1) });
+          }
+        }
 
-        const letterData = lSnap.data();
-        if(letterData.hidden === true) throw new Error("LETTER_HIDDEN");
+        // cộng vote thư mới
+        tx.update(lRefNew, { votes: (newData.votes || 0) + 1 });
 
-        const currVotes = (letterData.votes || 0);
-        const ownerUid = letterData.uid;
-
-        tx.update(lRef, { votes: currVotes + 1 });
+        // overwrite vote record
         tx.set(vRef, { letterId, createdAt: serverTimestamp() });
 
+        // notification cho chủ thư mới
+        const ownerUid = newData.uid;
         if(ownerUid && ownerUid !== user.uid){
           const nRef = doc(collection(db, "notifications"));
           tx.set(nRef, {
@@ -980,19 +1045,16 @@ body{
           });
         }
       });
-      return true;
+
+      return { ok:true, changed: hasOld && !!oldLetterId };
     }catch(e){
-      if(e.message === "ALREADY_VOTED"){
-        toast("Sky đã bình chọn rồi 💙", "💙", 2400);
-        return false;
-      }
       if(e.message === "LETTER_HIDDEN"){
         toast("Bức thư này đang bị ẩn 🙈", "⚠️", 2600);
-        return false;
+        return { ok:false };
       }
       console.error(e);
       toast(`Vote lỗi: ${e.code || e.message}`, "⚠️", 4200);
-      return false;
+      return { ok:false };
     }
   }
 
@@ -1138,7 +1200,6 @@ body{
       return;
     }
 
-    // Admin: theo yêu cầu "chỉ xem danh sách letters", không dùng panel này
     if(isAdminUser(user)){
       myList.innerHTML = `<div class="p-4 text-sm opacity-75">Admin mode 🛠️</div>`;
       return;
@@ -1194,7 +1255,6 @@ body{
 
   // ===== Vote page render =====
   async function fetchLetters(){
-    // ✅ user thường: chỉ lấy hidden == false
     const q1 = query(
       collection(db,"letters"),
       where("hidden","==", false),
@@ -1205,7 +1265,6 @@ body{
     return snap.docs.map(d => ({ id:d.id, ...d.data() }));
   }
   async function fetchTop3(){
-    // ✅ user thường: chỉ lấy hidden == false
     const q2 = query(
       collection(db,"letters"),
       where("hidden","==", false),
@@ -1220,9 +1279,9 @@ body{
 
   function letterCardHTML(l, voted, myPickId){
     const preview = (l.msg||"").slice(0,140) + ((l.msg||"").length>140 ? "…" : "");
-    const disabled = voted ? "opacity-60 cursor-not-allowed" : "";
     const picked = myPickId === l.id;
 
+    // Cho phép đổi vote: không disable nút, chỉ đổi text
     return `
       <div class="glass rounded-2xl p-6 cardHover cursor-pointer" data-open="${l.id}">
         <div class="flex items-start justify-between gap-3">
@@ -1231,9 +1290,9 @@ body{
             <div class="text-xs text-blue-200/70 mt-1">❤️ ${l.votes||0} lượt yêu thích</div>
           </div>
 
-          <button class="voteBtn px-4 py-2 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 ${disabled}"
-            data-vote="${l.id}" ${voted ? "disabled" : ""}>
-            ${picked ? "💙 Đã bình chọn" : "❤️ Bình chọn"}
+          <button class="voteBtn px-4 py-2 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20"
+            data-vote="${l.id}">
+            ${picked ? "💙 Đang chọn" : (voted ? "🔁 Đổi vote" : "❤️ Bình chọn")}
           </button>
         </div>
 
@@ -1262,60 +1321,94 @@ body{
 
   async function refreshVotePage(){
     const user = auth.currentUser;
+
     if(isAdminUser(user)){
-      // admin không dùng vote page
       document.getElementById('top3').innerHTML = `<div class="text-sm text-blue-200/80">Admin mode 🛠️</div>`;
       document.getElementById('letters').innerHTML = ``;
       return;
     }
 
-    const voted = user ? await hasVoted(user.uid) : false;
-    let myPickId = null;
+    document.getElementById('top3').innerHTML = `<div class="text-sm text-blue-200/80">Đang tải…</div>`;
+    document.getElementById('letters').innerHTML = `<div class="text-sm text-blue-200/80">Đang tải…</div>`;
 
-    if(user && voted){
-      const vSnap = await getDoc(doc(db,"votes", user.uid));
-      myPickId = vSnap.data()?.letterId || null;
-    }
+    try{
+      let voted = false;
+      let myPickId = null;
 
-    const top = await fetchTop3();
-    document.getElementById('top3').innerHTML =
-      top.length ? top.map((l,idx)=>topCardHTML(l, idx+1)).join("") :
-      `<div class="text-sm text-blue-200/80">Chưa có dữ liệu top. Hãy là người đầu tiên gửi thư 💙</div>`;
-
-    const letters = await fetchLetters();
-    document.getElementById('letters').innerHTML =
-      letters.length ? letters.map(l=>letterCardHTML(l, voted, myPickId)).join("") :
-      `<div class="text-sm text-blue-200/80">Chưa có thư nào. Bạn hãy gửi thư đầu tiên nha 💙</div>`;
-
-    document.querySelectorAll("[data-open]").forEach(el=>{
-      el.onclick = (e)=>{
-        if(e.target && e.target.closest && e.target.closest(".voteBtn")) return;
-        const id = el.getAttribute("data-open");
-        const l = letters.find(x=>x.id===id) || top.find(x=>x.id===id);
-        if(l) openModal(l);
-      };
-    });
-
-    document.querySelectorAll("[data-vote]").forEach(btn=>{
-      btn.onclick = async (e)=>{
-        e.stopPropagation();
-        const id = btn.getAttribute("data-vote");
-        const ok = await voteLetter(id);
-        if(ok){
-          const r = btn.getBoundingClientRect();
-          sparkleBurstAt(r.left + r.width/2, r.top + r.height/2);
-          toast("Sky đã bình chọn 💙", "💙", 2400);
-          await refreshVotePage();
-          if(!profilePanel.classList.contains("hidden")) refreshMyLetters().catch(()=>{});
+      if(user){
+        try{
+          voted = await hasVoted(user.uid);
+          if(voted){
+            const vSnap = await getDoc(doc(db,"votes", user.uid));
+            myPickId = vSnap.data()?.letterId || null;
+          }
+        }catch(err){
+          console.error("VOTE READ ERROR:", err);
+          voted = false;
+          myPickId = null;
         }
-      };
-    });
+      }
 
-    if(window.__openLetterId){
-      const target = window.__openLetterId;
-      window.__openLetterId = null;
-      const found = letters.find(x=>x.id===target) || top.find(x=>x.id===target);
-      if(found) openModal(found);
+      const top = await fetchTop3();
+      document.getElementById('top3').innerHTML =
+        top.length ? top.map((l,idx)=>topCardHTML(l, idx+1)).join("") :
+        `<div class="text-sm text-blue-200/80">Chưa có dữ liệu top. Hãy là người đầu tiên gửi thư 💙</div>`;
+
+      const letters = await fetchLetters();
+      document.getElementById('letters').innerHTML =
+        letters.length ? letters.map(l=>letterCardHTML(l, voted, myPickId)).join("") :
+        `<div class="text-sm text-blue-200/80">Chưa có thư nào. Bạn hãy gửi thư đầu tiên nha 💙</div>`;
+
+      document.querySelectorAll("[data-open]").forEach(el=>{
+        el.onclick = (e)=>{
+          if(e.target && e.target.closest && e.target.closest(".voteBtn")) return;
+          const id = el.getAttribute("data-open");
+          const l = letters.find(x=>x.id===id) || top.find(x=>x.id===id);
+          if(l) openModal(l);
+        };
+      });
+
+      document.querySelectorAll("[data-vote]").forEach(btn=>{
+        btn.onclick = async (e)=>{
+          e.stopPropagation();
+          const id = btn.getAttribute("data-vote");
+          const res = await voteLetter(id);
+          if(res.ok){
+            const r = btn.getBoundingClientRect();
+            sparkleBurstAt(r.left + r.width/2, r.top + r.height/2);
+
+            toast(res.changed ? "Đã đổi bình chọn 💙" : "Sky đã bình chọn 💙", "💙", 2400);
+
+            await refreshVotePage();
+            if(!profilePanel.classList.contains("hidden")) refreshMyLetters().catch(()=>{});
+          }
+        };
+      });
+
+      if(window.__openLetterId){
+        const target = window.__openLetterId;
+        window.__openLetterId = null;
+        const found = letters.find(x=>x.id===target) || top.find(x=>x.id===target);
+        if(found) openModal(found);
+      }
+
+    }catch(e){
+      console.error("REFRESH VOTE PAGE ERROR:", e);
+      const msg = (e?.message || "").toLowerCase();
+
+      if(msg.includes("index")){
+        toast("Firestore cần tạo Index cho Letters (hidden + createdAt / hidden + votes). Mở Console để tạo.", "⚠️", 5200);
+        document.getElementById('top3').innerHTML = `
+          <div class="text-sm text-blue-200/80">
+            ⚠️ Thiếu Index cho query letters. Mở DevTools Console sẽ có link “Create index”.
+          </div>`;
+        document.getElementById('letters').innerHTML = ``;
+        return;
+      }
+
+      toast(`Lỗi tải vote: ${e.code || e.message}`, "⚠️", 5200);
+      document.getElementById('top3').innerHTML = `<div class="text-sm text-blue-200/80">Lỗi tải dữ liệu.</div>`;
+      document.getElementById('letters').innerHTML = ``;
     }
   }
 
@@ -1413,7 +1506,6 @@ body{
 
       adminList.innerHTML = arr.map(adminCardHTML).join("");
 
-      // open modal on card click (trừ khi bấm nút)
       adminList.querySelectorAll("[data-admin-open]").forEach(el=>{
         el.onclick = (e)=>{
           if(e.target && e.target.closest && (e.target.closest("[data-admin-toggle]") || e.target.closest("[data-admin-del]"))) return;
@@ -1423,7 +1515,6 @@ body{
         };
       });
 
-      // toggle hidden
       adminList.querySelectorAll("[data-admin-toggle]").forEach(btn=>{
         btn.onclick = async (e)=>{
           e.stopPropagation();
@@ -1442,7 +1533,6 @@ body{
         };
       });
 
-      // delete
       adminList.querySelectorAll("[data-admin-del]").forEach(btn=>{
         btn.onclick = async (e)=>{
           e.stopPropagation();
@@ -1467,8 +1557,6 @@ body{
     }
   }
 
-  // ✅ Backfill: set hidden:false cho letters cũ (field missing)
-  // Firestore không query trực tiếp "field missing", nên ta scan theo trang (createdAt desc)
   async function backfillHiddenFalse(){
     const user = auth.currentUser;
     if(!isAdminUser(user)){
@@ -1482,7 +1570,6 @@ body{
     let totalScanned = 0;
     let totalUpdated = 0;
 
-    // paging
     let lastDoc = null;
     const PAGE = 250;
 
@@ -1497,19 +1584,15 @@ body{
       const docs = snap.docs;
       totalScanned += docs.length;
 
-      // update in batches (<= 450 updates cho an toàn)
       let batch = writeBatch(db);
       let ops = 0;
-      let updatedThisPage = 0;
 
       for(const d of docs){
         const data = d.data() || {};
         if(typeof data.hidden === "undefined"){
           batch.update(doc(db,"letters", d.id), { hidden: false });
           ops++;
-          updatedThisPage++;
           totalUpdated++;
-
           if(ops >= 450){
             await batch.commit();
             batch = writeBatch(db);
@@ -1537,6 +1620,3 @@ body{
 
 </body>
 </html>
-
-
-
